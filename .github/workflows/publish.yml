@@ -1,0 +1,28 @@
+name: Publish
+
+on:
+  push:
+    tags: [ '*.*.*' ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      # Checkout project code
+      - uses: actions/checkout@v2
+
+      # Set up python environment
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      # Install python poetry and dependencies for use in later steps
+      - name: Install Poetry
+        run: ./scripts/poetry.sh
+
+      # Change working directory and run build script
+      - name: Publish
+        run: ./scripts/publish.sh
