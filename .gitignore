@@ -1,0 +1,11 @@
+# Cached resources
+.pytest_cache
+__pycache__
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov
+
+# Build resources
+/dist
