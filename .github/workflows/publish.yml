@@ -4,6 +4,10 @@ on:
   push:
     tags: [ '*.*.*' ]
 
+env:
+  PYTHON_REPOSITORY_USERNAME: ${{ secrets.PYTHON_REPOSITORY_USERNAME }}
+  PYTHON_REPOSITORY_PASSWORD: ${{ secrets.PYTHON_REPOSITORY_PASSWORD }}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
