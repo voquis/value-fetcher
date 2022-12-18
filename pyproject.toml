@@ -1,10 +1,14 @@
 [tool.poetry]
 name = "value-fetcher"
-version = "0.0.1"
+version = "1.0.0"
 description = "Fetch a value from various sources, e.g AWS Secrets Manager and SSM Parameter Store"
 authors = ["Voquis Limited <opensource@voquis.com>"]
 readme = "README.md"
 packages = [{include = "value_fetcher", from = "src"}]
+homepage = "https://github.com/voquis/value-fetcher"
+repository = "https://github.com/voquis/value-fetcher"
+keywords = ["parameters", "secrets", "configuration", "values"]
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.11"
