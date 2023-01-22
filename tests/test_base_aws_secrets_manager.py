@@ -15,7 +15,26 @@ os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
 fetcher = ValueFetcher()
 
 @mock_secretsmanager
-def test_aws_secrets_manager_success(monkeypatch):
+def test_aws_secrets_manager_called_direct_no_key_raises_error():
+    """
+    Test fetching from secrets manager without specifying a key raises exception
+    """
+
+    # Assert an exception is thrown if parameter key is not provided
+    with pytest.raises(ValueError) as exception:
+        fetcher.get_from_aws_secrets_manager(None)
+
+    assert 'Missing or empty AWS Secrets Manager key' in str(exception.value)
+
+    # Assert an exception is thrown if parameter key is empty
+    with pytest.raises(ValueError) as exception:
+        fetcher.get_from_aws_secrets_manager('')
+
+    assert 'Missing or empty AWS Secrets Manager key' in str(exception.value)
+
+
+@mock_secretsmanager
+def test_aws_secrets_manager_with_env_var_config_success(monkeypatch):
     """
     Test fetching config values from secrets manager
     """
@@ -32,18 +51,18 @@ def test_aws_secrets_manager_success(monkeypatch):
 
 
 @mock_secretsmanager
-def test_aws_secrets_manager_no_name(monkeypatch):
+def test_aws_secrets_manager_without_env_var_config_success():
     """
     Test fetching config values from secrets manager without specifying a name
     """
 
-    monkeypatch.setenv('SECRET_NONAME_SOURCE', 'aws_secrets_manager')
+    key = '/is/ok/no/env/vars'
+    value = 'my secret val no env var'
 
-    with pytest.raises(ValueError) as exception:
-        fetcher.get('SECRET_NONAME')
+    # Create mocked test parameter to later fetch using moto
+    utils.put_secretsmanager_secret(key, value)
 
-    msg = 'Missing or empty environment value for SECRET_NONAME_SECRETS_MANAGER_NAME'
-    assert str(exception.value) == msg
+    assert fetcher.get_from_aws_secrets_manager(key) == value
 
 
 @mock_secretsmanager

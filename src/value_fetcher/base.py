@@ -109,16 +109,27 @@ class ValueFetcher:
         return value
 
 
-    def get_from_aws_secrets_manager(self, key) -> str:
+    def get_from_aws_secrets_manager(self, key: str) -> str:
         """
         Fetch a value from AWS Secrets Manager.
-        If the secret name (needed to fetch) is not in environment, raise an exception.
+        If the secret name is not configured by an environment variable, use the key directly.
         """
+
+        if not isinstance(key, str) or len(key) == 0:
+            message = 'Missing or empty AWS Secrets Manager key'
+            logging.critical(message)
+            raise ValueError(message)
+
         name_key = f'{key}_SECRETS_MANAGER_NAME'
 
         logging.debug('Checking environment for AWS Secret Manager name: %s', name_key)
-        name = self.get_from_env(name_key)
-        logging.debug('Using parameter name %s', name)
+        try:
+            name = self.get_from_env(name_key)
+            logging.debug('Using secret name %s', name)
+        except ValueError as exception:
+            logging.debug(exception)
+            logging.debug('Using key name for secret %s', key)
+            name = key
 
         aws = Aws()
         value = aws.get_secret_value(name)
