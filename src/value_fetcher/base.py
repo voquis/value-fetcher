@@ -77,16 +77,27 @@ class ValueFetcher:
         return value
 
 
-    def get_from_aws_ssm_parameter_store(self, key) -> str:
+    def get_from_aws_ssm_parameter_store(self, key: str) -> str:
         """
         Fetch a value from AWS SSM Parameter store.
-        If the parameter name (needed to fetch) is not in environment, raise an exception.
+        If the parameter name is not configured by an environment variable, try the provided key.
         """
+
+        if not isinstance(key, str) or len(key) == 0:
+            message = 'Missing or empty AWS SSM Parameter Store key'
+            logging.critical(message)
+            raise ValueError(message)
+
         name_key = f'{key}_PARAMETER_STORE_NAME'
 
         logging.debug('Checking environment for AWS SSM Parameter name: %s', name_key)
-        name = self.get_from_env(name_key)
-        logging.debug('Using parameter name %s', name)
+        try:
+            name = self.get_from_env(name_key)
+            logging.debug('Using parameter name %s', name)
+        except ValueError as exception:
+            logging.debug(exception)
+            logging.debug('Using key name for parameter %s', key)
+            name = key
 
         aws = Aws()
         value = aws.get_parameter_value(name)

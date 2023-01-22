@@ -23,15 +23,11 @@ def test_invalid_names():
     with pytest.raises(ValueError) as env_exception:
         fetcher.get_from_env('')
 
-    with pytest.raises(ValueError) as ps_exception:
-        fetcher.get_from_aws_ssm_parameter_store('')
-
     with pytest.raises(ValueError) as sm_exception:
         fetcher.get_from_aws_secrets_manager('')
 
     assert str(exception.value) == 'Invalid key name provided'
     assert str(env_exception.value) == 'Missing or empty environment key'
-    assert str(ps_exception.value) == 'Missing or empty environment value for _PARAMETER_STORE_NAME'
     assert str(sm_exception.value) == 'Missing or empty environment value for _SECRETS_MANAGER_NAME'
 
 

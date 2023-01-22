@@ -15,9 +15,28 @@ os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
 fetcher = ValueFetcher()
 
 @mock_ssm
-def test_aws_ssm_parameter_store_success(monkeypatch):
+def test_aws_ssm_parameter_store_called_direct_no_key_raises_error():
     """
-    Test fetching config values from parameter store
+    Test fetching from parameter store without specifying a key raises exception
+    """
+
+    # Assert an exception is thrown if parameter key is not provided
+    with pytest.raises(ValueError) as exception:
+        fetcher.get_from_aws_ssm_parameter_store(None)
+
+    assert 'Missing or empty AWS SSM Parameter Store key' in str(exception.value)
+
+    # Assert an exception is thrown if parameter key is empty
+    with pytest.raises(ValueError) as exception:
+        fetcher.get_from_aws_ssm_parameter_store('')
+
+    assert 'Missing or empty AWS SSM Parameter Store key' in str(exception.value)
+
+
+@mock_ssm
+def test_aws_ssm_parameter_store_with_env_var_config_success(monkeypatch):
+    """
+    Test fetching config values from parameter store with key name from environment
     """
 
     # Instruct config provider to fetch value for SSM_TEST from parameter store
@@ -32,18 +51,18 @@ def test_aws_ssm_parameter_store_success(monkeypatch):
 
 
 @mock_ssm
-def test_aws_ssm_parameter_store_no_name(monkeypatch):
+def test_aws_ssm_parameter_store_without_env_var_config_success():
     """
-    Test fetching config values from parameter store without specifying a name
+    Test fetching config values from parameter store with no additional environment variables.
     """
 
-    monkeypatch.setenv('SSM_NONAME_SOURCE', 'aws_ssm_parameter_store')
+    key = '/is/ok/no/env/vars'
+    value = 'my val no env var'
 
-    with pytest.raises(ValueError) as exception:
-        fetcher.get('SSM_NONAME')
+    # Create mocked test parameter to later fetch using moto
+    utils.ssm_put_parameter_securestring(key, value)
 
-    msg = 'Missing or empty environment value for SSM_NONAME_PARAMETER_STORE_NAME'
-    assert str(exception.value) == msg
+    assert fetcher.get_from_aws_ssm_parameter_store(key) == value
 
 
 @mock_ssm
