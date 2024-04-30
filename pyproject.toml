@@ -1,31 +1,43 @@
-[tool.poetry]
-name = "value-fetcher"
-version = "1.0.2"
-description = "Fetch a value from various sources, e.g AWS Secrets Manager and SSM Parameter Store"
-authors = ["Voquis Limited <opensource@voquis.com>"]
-readme = "README.md"
-packages = [{include = "value_fetcher", from = "src"}]
-homepage = "https://github.com/voquis/value-fetcher"
-repository = "https://github.com/voquis/value-fetcher"
-keywords = ["parameters", "secrets", "configuration", "values"]
-license = "MIT"
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-boto3 = "^1.26.27"
-pyyaml = "^6.0"
+[project]
+name = "value-fetcher"
+version = "1.0.3"
+description = "Fetch a value from various sources, e.g AWS Secrets Manager and SSM Parameter Store"
+keywords = ["parameters", "secrets", "configuration", "values"]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+
+authors = [{ name = "Voquis Limited", email = "opensource@voquis.com" }]
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+dependencies = ["boto3"]
+
+[project.optional-dependencies]
+dev = [
+  'black',
+  'build',
+  'flake8',
+  'moto',
+  'pylint',
+  'pytest',
+  'pytest-cov',
+  'twine'
+]
+
+[project.urls]
+Homepage = "https://github.com/voquis/value-fetcher"
+Issues = "https://github.com/voquis/value-fetcher/issues"
 
 [tool.pytest.ini_options]
 pythonpath = [
   "src"
 ]
-
-[tool.poetry.group.dev.dependencies]
-moto = "^4.0.11"
-pylint = "^2.15.8"
-pytest = "^7.2.0"
-coverage = "^6.5.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

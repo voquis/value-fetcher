@@ -8,14 +8,16 @@ import logging
 import boto3
 import botocore
 
+
 class Aws:
     """
     Fetch parameters and send emails.
     """
+
     def __init__(self) -> None:
         # Prepare AWS clients
-        self.ssm = boto3.client('ssm')
-        self.secretsmanager = boto3.client('secretsmanager')
+        self.ssm = boto3.client("ssm")
+        self.secretsmanager = boto3.client("secretsmanager")
 
     def get_parameter_value(self, name) -> str:
         """
@@ -25,15 +27,12 @@ class Aws:
 
         value = None
 
-        logging.debug('Fetching AWS SSM Parameter Store parameter: %s', name)
+        logging.debug("Fetching AWS SSM Parameter Store parameter: %s", name)
         try:
-            response = self.ssm.get_parameter(
-                Name=name,
-                WithDecryption=True
-            )
-            if 'Parameter' in response:
-                if 'Value' in response['Parameter']:
-                    value = response['Parameter']['Value']
+            response = self.ssm.get_parameter(Name=name, WithDecryption=True)
+            if "Parameter" in response:
+                if "Value" in response["Parameter"]:
+                    value = response["Parameter"]["Value"]
         except (
             botocore.exceptions.ClientError,
             botocore.exceptions.NoCredentialsError,
@@ -42,11 +41,10 @@ class Aws:
             self.ssm.exceptions.ParameterNotFound,
             self.ssm.exceptions.ParameterVersionNotFound,
         ) as exception:
-            logging.warning('Unable to retrieve AWS SSM Parameter value for name %s', name)
+            logging.warning("AWS SSM Parameter fetch failed: %s", name)
             logging.warning(exception)
 
         return value
-
 
     def get_secret_value(self, name) -> str:
         """
@@ -55,16 +53,16 @@ class Aws:
         """
 
         value = None
-        logging.debug('Fetching AWS Secrets Manager secret: %s', name)
+        logging.debug("Fetching AWS Secrets Manager secret: %s", name)
 
         try:
             response = self.secretsmanager.get_secret_value(SecretId=name)
-            if 'SecretString' in response:
-                value = response['SecretString']
-            elif 'SecretBinary' in response:
-                value = response['SecretBinary']
+            if "SecretString" in response:
+                value = response["SecretString"]
+            elif "SecretBinary" in response:
+                value = response["SecretBinary"]
                 if isinstance(value, bytes):
-                    value = value.decode('utf-8')
+                    value = value.decode("utf-8")
         except (
             botocore.exceptions.ClientError,
             botocore.exceptions.NoCredentialsError,
@@ -74,7 +72,7 @@ class Aws:
             self.secretsmanager.exceptions.DecryptionFailure,
             self.secretsmanager.exceptions.InternalServiceError,
         ) as exception:
-            logging.warning('Unable to retrieve AWS Secrets Manager value for name %s', name)
+            logging.warning("AWS Secrets Manager fetch failed: %s", name)
             logging.warning(exception)
 
         return value

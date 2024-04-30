@@ -14,6 +14,7 @@ class ValueFetcher:
     """
     Configuration provider class
     """
+
     def __init__(self, env_defaults: dict = None) -> None:
         self.env_defaults = env_defaults
 
@@ -26,30 +27,29 @@ class ValueFetcher:
         key = key.upper()
 
         if not isinstance(key, str) or len(key) == 0:
-            message = 'Invalid key name provided'
+            message = "Invalid key name provided"
             logging.critical(message)
             logging.critical(key)
             raise ValueError(message)
 
-        logging.debug('Retrieving value for key %s', key)
-        source = os.environ.get(f'{key}_SOURCE', 'env').lower()
-        logging.debug('%s source: %s', key, source)
+        logging.debug("Retrieving value for key %s", key)
+        source = os.environ.get(f"{key}_SOURCE", "env").lower()
+        logging.debug("%s source: %s", key, source)
         # Get value from environment variable
-        if source == 'env':
+        if source == "env":
             return self.get_from_env(key)
 
         # Get value from AWS SSM parameter store
-        if source == 'aws_ssm_parameter_store':
+        if source == "aws_ssm_parameter_store":
             return self.get_from_aws_ssm_parameter_store(key)
 
         # Get value from AWS Secrets Manager
-        if source == 'aws_secrets_manager':
+        if source == "aws_secrets_manager":
             return self.get_from_aws_secrets_manager(key)
 
-        message = f'Unknown source {source}'
+        message = f"Unknown source {source}"
         logging.critical(message)
         raise ValueError(message)
-
 
     def get_from_env(self, key) -> str:
         """
@@ -58,83 +58,84 @@ class ValueFetcher:
         """
 
         if not isinstance(key, str) or len(key) == 0:
-            message = 'Missing or empty environment key'
+            message = "Missing or empty environment key"
             logging.critical(message)
             logging.critical(key)
             raise ValueError(message)
 
-        logging.debug('Checking environment for key: %s', key)
-        value = os.environ.get(key, '').strip()
+        logging.debug("Checking environment for key: %s", key)
+        value = os.environ.get(key, "").strip()
         if not isinstance(value, str) or len(value) == 0:
-            if isinstance(self.env_defaults, dict) and key in self.env_defaults:
-                logging.debug('Using default value for environment variable: %s', key)
-                value = self.env_defaults[key]
+            defaults = self.env_defaults
+            if isinstance(defaults, dict) and key in defaults:
+                logging.debug("Using default value for env var: %s", key)
+                value = defaults[key]
             else:
-                message = f'Missing or empty environment value for {key}'
+                message = f"Missing or empty environment value for {key}"
                 logging.critical(message)
                 raise ValueError(message)
 
         return value
 
-
     def get_from_aws_ssm_parameter_store(self, key: str) -> str:
         """
         Fetch a value from AWS SSM Parameter store.
-        If the parameter name is not configured by an environment variable, try the provided key.
+        If the parameter name is not configured by an environment variable,
+        try the provided key.
         """
 
         if not isinstance(key, str) or len(key) == 0:
-            message = 'Missing or empty AWS SSM Parameter Store key'
+            message = "Missing or empty AWS SSM Parameter Store key"
             logging.critical(message)
             raise ValueError(message)
 
-        name_key = f'{key}_PARAMETER_STORE_NAME'
+        name_key = f"{key}_PARAMETER_STORE_NAME"
 
-        logging.debug('Checking environment for AWS SSM Parameter name: %s', name_key)
+        logging.debug("Checking env for AWS SSM Parameter %s", name_key)
         try:
             name = self.get_from_env(name_key)
-            logging.debug('Using parameter name %s', name)
+            logging.debug("Using parameter name %s", name)
         except ValueError as exception:
             logging.debug(exception)
-            logging.debug('Using key name for parameter %s', key)
+            logging.debug("Using key name for parameter %s", key)
             name = key
 
         aws = Aws()
         value = aws.get_parameter_value(name)
         if not isinstance(value, str) or len(value) == 0:
-            message = f'Missing or empty AWS SSM Parameter Store value for {name}'
+            message = f"Missing or empty AWS SSM Parameter Store {name}"
             logging.critical(message)
             raise ValueError(message)
 
         return value
 
-
     def get_from_aws_secrets_manager(self, key: str) -> str:
         """
         Fetch a value from AWS Secrets Manager.
-        If the secret name is not configured by an environment variable, use the key directly.
+        If the secret name is not configured by an environment variable,
+        use the key directly.
         """
 
         if not isinstance(key, str) or len(key) == 0:
-            message = 'Missing or empty AWS Secrets Manager key'
+            message = "Missing or empty AWS Secrets Manager key"
             logging.critical(message)
             raise ValueError(message)
 
-        name_key = f'{key}_SECRETS_MANAGER_NAME'
+        name_key = f"{key}_SECRETS_MANAGER_NAME"
 
-        logging.debug('Checking environment for AWS Secret Manager name: %s', name_key)
+        logging.debug("Checking env for AWS Secret Manager %s", name_key)
         try:
             name = self.get_from_env(name_key)
-            logging.debug('Using secret name %s', name)
+            logging.debug("Using secret name %s", name)
         except ValueError as exception:
             logging.debug(exception)
-            logging.debug('Using key name for secret %s', key)
+            logging.debug("Using key name for secret %s", key)
             name = key
 
         aws = Aws()
         value = aws.get_secret_value(name)
         if not isinstance(value, str) or len(value) == 0:
-            message = f'Missing or empty AWS Secrets Manager value for {name}'
+            message = f"Missing or empty AWS Secrets Manager value for {name}"
             logging.critical(message)
             raise ValueError(message)
 
