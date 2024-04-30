@@ -1,14 +1,27 @@
 #!/bin/bash
 set -euo pipefail
 
-# Install dependencies, including development dependencies
-poetry install --no-root
+# Assumes the src contains a single package to be built
+PACKAGE_PATH=$(find src/* -type d | head -n 1)
+PACKAGE_NAME=${PACKAGE_PATH#src/}
+echo "Using package name: $PACKAGE_NAME"
 
-# Run linting checks on package, tests and app entrypoint
-poetry run pylint src tests
+# Install development dependencies with pip
+pip install .[dev]
 
-# Run tests and generate test coverage report
-poetry run coverage run -m pytest tests
-poetry run coverage html --omit="tests*"
-poetry run coverage xml --omit="tests/*"
-poetry run coverage report --omit="tests/*" --precision=2 --fail-under=100.00
+# Run formatting checks
+flake8
+
+# Run linting checks
+black --check --diff .
+pylint src tests
+
+# Run tests and generate coverage reports
+pytest --cov="$PACKAGE_NAME" \
+  --cov-report term \
+  --cov-report html \
+  --cov-fail-under=100.00
+
+# Check the build
+python -m build
+twine check --strict dist/*
